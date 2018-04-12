@@ -1,0 +1,92 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'mainwindow.ui'
+#
+# Created by: PyQt5 UI code generator 5.9
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(1132, 780)
+        self.centralWidget = QtWidgets.QWidget(MainWindow)
+        self.centralWidget.setObjectName("centralWidget")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralWidget)
+        self.horizontalLayout.setContentsMargins(50, 20, 50, 20)
+        self.horizontalLayout.setSpacing(50)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.video_label = QtWidgets.QLabel(self.centralWidget)
+        self.video_label.setText("")
+        self.video_label.setObjectName("video_label")
+        self.horizontalLayout.addWidget(self.video_label)
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setContentsMargins(30, 20, 30, 20)
+        self.verticalLayout.setSpacing(30)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setContentsMargins(30, 11, 30, 11)
+        self.gridLayout.setSpacing(6)
+        self.gridLayout.setObjectName("gridLayout")
+        self.face = QtWidgets.QLabel(self.centralWidget)
+        self.face.setText("")
+        self.face.setObjectName("face")
+        self.gridLayout.addWidget(self.face, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayout)
+        self.name_label = QtWidgets.QLabel(self.centralWidget)
+        self.name_label.setEnabled(True)
+        self.name_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.name_label.setObjectName("name_label")
+        self.verticalLayout.addWidget(self.name_label)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setContentsMargins(20, 11, 20, 11)
+        self.horizontalLayout_2.setSpacing(20)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.pay_btn = QtWidgets.QPushButton(self.centralWidget)
+        self.pay_btn.setObjectName("pay_btn")
+        self.horizontalLayout_2.addWidget(self.pay_btn)
+        self.pay_num_edit = QtWidgets.QLineEdit(self.centralWidget)
+        self.pay_num_edit.setObjectName("pay_num_edit")
+        self.horizontalLayout_2.addWidget(self.pay_num_edit)
+        self.horizontalLayout_2.setStretch(0, 1)
+        self.horizontalLayout_2.setStretch(1, 1)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.add_new_user_btn = QtWidgets.QPushButton(self.centralWidget)
+        self.add_new_user_btn.setObjectName("add_new_user_btn")
+        self.verticalLayout.addWidget(self.add_new_user_btn)
+        self.pushButton = QtWidgets.QPushButton(self.centralWidget)
+        self.pushButton.setObjectName("pushButton")
+        self.verticalLayout.addWidget(self.pushButton)
+        self.verticalLayout.setStretch(0, 3)
+        self.verticalLayout.setStretch(1, 1)
+        self.verticalLayout.setStretch(2, 3)
+        self.verticalLayout.setStretch(3, 3)
+        self.verticalLayout.setStretch(4, 3)
+        self.horizontalLayout.addLayout(self.verticalLayout)
+        self.horizontalLayout.setStretch(0, 2)
+        self.horizontalLayout.setStretch(1, 1)
+        MainWindow.setCentralWidget(self.centralWidget)
+        self.menuBar = QtWidgets.QMenuBar(MainWindow)
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 1132, 23))
+        self.menuBar.setObjectName("menuBar")
+        MainWindow.setMenuBar(self.menuBar)
+        self.mainToolBar = QtWidgets.QToolBar(MainWindow)
+        self.mainToolBar.setObjectName("mainToolBar")
+        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.mainToolBar)
+        self.statusBar = QtWidgets.QStatusBar(MainWindow)
+        self.statusBar.setObjectName("statusBar")
+        MainWindow.setStatusBar(self.statusBar)
+
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.name_label.setText(_translate("MainWindow", "未识别"))
+        self.pay_btn.setText(_translate("MainWindow", "支付"))
+        self.add_new_user_btn.setText(_translate("MainWindow", "添加新用户"))
+        self.pushButton.setText(_translate("MainWindow", "查看余额"))
+
