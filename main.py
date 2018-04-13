@@ -5,8 +5,8 @@ import sys
 
 from mainwindow import MainWindow
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QMainWindow
 
+from addclientwindow import AddClientWindow
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

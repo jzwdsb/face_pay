@@ -4,63 +4,107 @@
 import cv2
 
 import pymysql
-from numpy import ndarray, array
+from numpy import ndarray
+import face_recognition as fr
 
 from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QTimer, pyqtSlot, pyqtSignal, QPoint
-
+from PyQt5.QtWidgets import QMainWindow, QDialog, QMessageBox
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QTimer, pyqtSlot, pyqtSignal
 
 from UI_MainWindow import Ui_MainWindow
+
 from face_handle import Face_handle
+from addclientwindow import AddClientWindow
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.cap = cv2.VideoCapture(0)
-        self.client_name = []
         self.timer = QTimer()
-        self.face_handle = Face_handle()
         self.timer.start(20)
+        host = 'localhost'
+        user = 'root'
+        password = '123456'
+        db = 'face_pay'
+        self.connection = pymysql.connect(host=host, user=user, password=password, db=db)
+        self.face_handle = Face_handle('kown_people_folder/', self.connection)
+
         self.UI = Ui_MainWindow()
         self.UI.setupUi(self)
         self.signal_connect()
 
-
     def signal_connect(self):
         self.timer.timeout.connect(self.play_video)
-        self.UI.pay_btn.clicked.connect(self.recognise_face)
+        self.UI.pay_btn.clicked.connect(self.pay)
+        self.UI.add_new_user_btn.clicked.connect(self.add_new_client)
+        self.UI.show_balance_btn.clicked.connect(self.show_balance)
 
     @pyqtSlot(name="play_video")
     def play_video(self):
         ret, frame = self.cap.read()
         if ret:
-            self.play_frame(self.UI.video_label, frame)
+            MainWindow.play_frame(self.UI.video_label, frame)
 
-    def play_frame(self, label: QtWidgets.QLabel, frame: ndarray):
+    @staticmethod
+    def play_frame(label: QtWidgets.QLabel, frame: ndarray):
         rbgframe = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         convert_to_qt = QImage(rbgframe, rbgframe.shape[1], rbgframe.shape[0], QImage.Format_RGB888)
         label.setPixmap(QPixmap.fromImage(convert_to_qt))
 
-    def recognise_face(self):
+    @pyqtSlot(name='recognise_face')
+    def pay(self):
         """
             this function recognise face from the current frame
           cut out the face part and show it in a other label, the
           name display in the label blow
-        :return:
+        :return: None
         """
         self.timer.timeout.disconnect(self.play_video)
         ret, frame = self.cap.read()
         name, box = self.face_handle.recognise(frame)
-        top, right, bottom, left = box
-        face_part = frame[top: bottom, left: right]
-        new_size = self.UI.face.size().height(), self.UI.face.size().width()
-        face_part = cv2.resize(face_part, new_size)
-        self.play_frame(self.UI.face, face_part)
-        self.UI.name_label.setText(name)
+        if name is not None:
+            top, right, bottom, left = box
+            face_part = frame[top: bottom, left: right]
+            new_size = self.UI.face.size().height(), self.UI.face.size().width()
+            face_part = cv2.resize(face_part, new_size)
+            self.play_frame(self.UI.face, face_part)
+            self.UI.name_label.setText(name)
+            pay_num = self.UI.pay_num_edit.text()
+            if len(pay_num) == 0:
+                QMessageBox.warning(self, '错误', '请输入金额')
+                return
+            with self.connection.cursor() as cursor:
+                sql = 'UPDATE `client_record` SET `balance` = `balance` - %s WHERE `user_name` = %s'
+                cursor.execute(sql, self.UI.pay_num_edit.text(), name)
+
+            self.connection.commit()
+        else:
+            self.UI.name_label.setText(box)
         self.timer.timeout.connect(self.play_video)
 
+    @pyqtSlot(name='add_new_client')
+    def add_new_client(self):
+        self.timer.timeout.disconnect(self.play_video)
+        ret, frame = self.cap.read()
+        top, right, bottom, left = fr.face_locations(frame)[0]
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = frame[top:bottom, left:right]
+        self.face_handle.add_new_client()
+        add_client = AddClientWindow(self, self.connection, frame)
+        if add_client.exec() == QDialog.Accepted:
+            pass
+        else:
+            QMessageBox.information(self, '提示', '取消新增客户')
 
+        self.timer.timeout.connect(self.play_video)
 
+    @pyqtSlot(name='show_balance')
+    def show_balance(self):
+        sql = 'SELECT `balance` FROM `client_record` WHERE `user_name` = %s'
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql, self.UI.name_label.text())
+            result = cursor.fetchone()
+            balance = result['balance']
+            QMessageBox.information(self, '余额', '%f' % balance)
