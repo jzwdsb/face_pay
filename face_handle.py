@@ -15,6 +15,8 @@ class Face_handle:
     def __init__(self, train_set: str, connect: pymysql.connections):
         if train_set is None:
             self.train_set = 'known_people_folder/'
+        else:
+            self.train_set = train_set
         self.connect = connect
         self.names = []
         self.known_face = []
@@ -27,7 +29,7 @@ class Face_handle:
             cursor.execute(sql)
             row = cursor.fetchone()
             while row is not None:
-                self.names.add(row['user_name'])
+                self.names.append(row[0])
                 row = cursor.fetchone()
 
     def load_data(self) -> bool:
@@ -52,7 +54,7 @@ class Face_handle:
         encoding = fr.face_encodings(frame)
         if len(encoding) == 0 or len(bounding_box) == 0:
             return None, '未识别到人脸'
-        recognise_result = fr.compare_faces(self.known_face, encoding[0])
+        recognise_result = fr.compare_faces(self.known_face, encoding[0], tolerance=0.4)
         try:
             name_index = recognise_result.index(True)
         except ValueError:

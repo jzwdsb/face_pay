@@ -28,8 +28,9 @@ class MainWindow(QMainWindow):
         user = 'root'
         password = '123456'
         db = 'face_pay'
-        self.connection = pymysql.connect(host=host, user=user, password=password, db=db)
-        self.face_handle = Face_handle('kown_people_folder/', self.connection)
+        charset = 'utf8'
+        self.connection = pymysql.connect(host=host, user=user, password=password, db=db, charset=charset)
+        self.face_handle = Face_handle('known_people_folder/', self.connection)
 
         self.UI = Ui_MainWindow()
         self.UI.setupUi(self)
@@ -74,12 +75,13 @@ class MainWindow(QMainWindow):
             pay_num = self.UI.pay_num_edit.text()
             if len(pay_num) == 0:
                 QMessageBox.warning(self, '错误', '请输入金额')
+                self.timer.timeout.connect(self.play_video)
                 return
-            with self.connection.cursor() as cursor:
-                sql = 'UPDATE `client_record` SET `balance` = `balance` - %s WHERE `user_name` = %s'
-                cursor.execute(sql, self.UI.pay_num_edit.text(), name)
-
-            self.connection.commit()
+            if QMessageBox.question(self, '提示', '确认支付?') == QMessageBox.Yes:
+                with self.connection.cursor() as cursor:
+                    sql = 'UPDATE `client_record` SET `balance` = `balance` - %s WHERE `user_name` = %s'
+                    cursor.execute(sql, (self.UI.pay_num_edit.text(), name))
+                self.connection.commit()
         else:
             self.UI.name_label.setText(box)
         self.timer.timeout.connect(self.play_video)
@@ -88,23 +90,21 @@ class MainWindow(QMainWindow):
     def add_new_client(self):
         self.timer.timeout.disconnect(self.play_video)
         ret, frame = self.cap.read()
-        top, right, bottom, left = fr.face_locations(frame)[0]
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = frame[top:bottom, left:right]
-        self.face_handle.add_new_client()
-        add_client = AddClientWindow(self, self.connection, frame)
-        if add_client.exec() == QDialog.Accepted:
-            pass
-        else:
+        add_client = AddClientWindow(self, self.connection, self.face_handle, frame)
+        if add_client.exec() == QDialog.Rejected:
             QMessageBox.information(self, '提示', '取消新增客户')
 
         self.timer.timeout.connect(self.play_video)
 
     @pyqtSlot(name='show_balance')
     def show_balance(self):
+        self.timer.timeout.disconnect(self.play_video)
+        ret, frame = self.cap.read()
+        name, box = self.face_handle.recognise(frame)
         sql = 'SELECT `balance` FROM `client_record` WHERE `user_name` = %s'
         with self.connection.cursor() as cursor:
-            cursor.execute(sql, self.UI.name_label.text())
+            cursor.execute(sql, name)
             result = cursor.fetchone()
-            balance = result['balance']
+            balance = result[0]
             QMessageBox.information(self, '余额', '%f' % balance)
+        self.timer.timeout.connect(self.play_video)
