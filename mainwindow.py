@@ -24,12 +24,18 @@ class MainWindow(QMainWindow):
         self.cap = cv2.VideoCapture(0)
         self.timer = QTimer()
         self.timer.start(20)
+        self.box = cv2.imread('box.bmp')
         host = 'localhost'
         user = 'root'
         password = '123456'
         db = 'face_pay'
         charset = 'utf8'
-        self.connection = pymysql.connect(host=host, user=user, password=password, db=db, charset=charset)
+        try:
+            self.connection = pymysql.connect(host=host, user=user, password=password, db=db, charset=charset)
+        except pymysql.err.OperationalError as e:
+            QMessageBox.warning(self, '警告', '无法连接数据库')
+            self.close()
+            return
         self.face_handle = Face_handle('known_people_folder/', self.connection)
 
         self.UI = Ui_MainWindow()
@@ -45,6 +51,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot(name="play_video")
     def play_video(self):
         ret, frame = self.cap.read()
+        frame = cv2.rectangle(frame, (100, 50), (500, 300), (0, 0, 255), 3)
         if ret:
             MainWindow.play_frame(self.UI.video_label, frame)
 
@@ -64,6 +71,7 @@ class MainWindow(QMainWindow):
         """
         self.timer.timeout.disconnect(self.play_video)
         ret, frame = self.cap.read()
+        frame = frame[50: 300, 100: 500]
         name, box = self.face_handle.recognise(frame)
         if name is not None:
             top, right, bottom, left = box
